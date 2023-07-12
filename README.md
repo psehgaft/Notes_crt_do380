@@ -8,7 +8,7 @@ metadata:
   labels:
     openshift.io/cluster-monitoring: "true"
   name: openshift-metering
-``
+```
 
 
 ```yml
@@ -38,7 +38,7 @@ spec:
         name: ca-config-map
       insecure: false
       url: "ldaps://idm.ocp4.example.com/cn=users,cn=accounts,dc=ocp4,dc=example,dc=com?uid"
-``
+```
 
 ```sh
 
