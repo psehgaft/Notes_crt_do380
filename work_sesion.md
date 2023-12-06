@@ -4,37 +4,30 @@
 - Test Playbooks
 
 ```
-- name: Deploying the 370 application
+- name: Deploying the 380 application
   hosts: localhost
   become: false
   gather_facts: false
   vars:
-    project: automation-ansible
-    app-name: 370
+    project: "automation-ansible"
+    appname: "app-380"
 
   tasks:
+
     - name: Create a project
-      redhat.openshift.k8s:
+      # redhat.openshift.k8s:
+      community.kubernetes.k8s:
         state: present
         resource_definition:
           apiVersion: project.openshift.io/v1
           kind: Project
           metadata:
-            name: "{{ project }}"
+            name: "{{ appname }}"
 
-    - name: Deploy app 
-      redhat.openshift.k8s:
+    - name: Deploy app
+      # redhat.openshift.k8s:
+      community.kubernetes.k8s:
         state: present
-        src: "{{  app-name }}.yml"
+        src: "{{ appname }}.yml"
 
-    - name: Scaled up app
-      kubernetes.core.k8s_scale:
-        kind: Deployment
-        name: "{{  app-name }}"
-        replicas: 3
-
-   -  name: Create a route
-      redhat.openshift.openshift_route:
-        service: "{{  app-name }}-svc"
-      register: route
 ```
