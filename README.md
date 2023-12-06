@@ -55,7 +55,7 @@ ssh core@wnode "sudo systemctl is-active kubelet"
   gather_facts: false
   vars:
     project: automation-ansible
-    app-name: 370
+    app-name: 380
 
   tasks:
     - name: Create a project
