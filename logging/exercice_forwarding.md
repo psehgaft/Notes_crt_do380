@@ -1,5 +1,5 @@
 
-# Guided Exercise: Log Forwarding to External Syslog Server
+# Exercise Log Forwarding to External Syslog Server
 
 ## Objectives
 
