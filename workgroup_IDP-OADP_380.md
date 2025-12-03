@@ -186,7 +186,7 @@ spec:
 
 # 4. MediaWiki + PostgreSQL Deployment
 
-### MediaWiki Deployment (from DO380 references)
+### MediaWiki Deployment 
 
 ```yaml
 apiVersion: apps/v1
@@ -226,7 +226,7 @@ spec:
           claimName: mediawiki-images-pvc
 ```
 
-### PostgreSQL StatefulSet (from DO380 references)
+### PostgreSQL StatefulSet 
 
 ```yaml
 apiVersion: apps/v1
@@ -271,7 +271,7 @@ spec:
 
 ---
 
-# 5. Velero Backup Schedule with Hooks (from DO380 Lab)
+# 5. Velero Backup Schedule with Hooks
 
 ```yaml
 apiVersion: velero.io/v1
@@ -362,7 +362,7 @@ spec:
 
 ---
 
-# 7. RH‑SSO / OIDC Integration (from DO380 Chapter 1)
+# 7. RH‑SSO / OIDC Integration 
 
 ## 7.1 Create OAuth Secret
 
@@ -412,7 +412,7 @@ oc adm policy add-role-to-group view partners -n auth-oidc
 
 ---
 
-# 9. Cleanup (from DO380)
+# 9. Cleanup
 
 ```bash
 oc delete schedule mediawiki-daily-paused -n oadp
