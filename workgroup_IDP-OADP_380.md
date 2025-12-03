@@ -1,7 +1,66 @@
 
 # Workgroup OpenShift Operations Guide  
 
+# Notes_crt_do380
 
+## Agenda (1.5 hours)
+1. **Intro & Environment Check **  
+2. **Exercise 1 — OADP Backup & Restore **  
+3. **Exercise 2 — OIDC Setup & Group Sync **  
+4. **Review & Troubleshooting **
+
+### Configure OADP to back up a sample application, schedule backups, run hooks, and perform a restore into a staging namespace.
+
+1. Deploy or verify the OADP operator.
+2. Validate CSI snapshot support for the cluster’s StorageClasses.
+3. Prepare an S3 bucket configuration and secret.
+4. Complete the Velero/OADP CR using valid values:
+   - S3 bucket 
+   - credentials secret 
+   - snapshot locations 
+   - backup storage locations 
+5. Create a **scheduled backup**: 
+   - Runs at **23:00 daily** 
+   - Includes resources filtered by labels: 
+     - `app.kubernetes.io/part-of=mediawiki` 
+     - `app.kubernetes.io/name=mediawiki` 
+     - `app.kubernetes.io/name=postgresql` 
+6. Add **backup hooks**:
+   - Lock MediaWiki (write a lock file) 
+   - Trigger PostgreSQL `CHECKPOINT` 
+7. Trigger the backup manually using Velero. 
+8. Restore into **wiki-staging** project. 
+9. Add a **restore hook** to remove the MediaWiki lock file. 
+10. Update deployment environment variables: 
+    ```
+    MEDIAWIKI_SITE_NAME="DO380 Team Wiki Staging"
+    MEDIAWIKI_SITE_SERVER="https://mediawiki-wiki-staging.apps.example.com"
+    ```
+
+### Configure an OIDC provider, synchronize groups, and validate permissions behavior.
+
+### ✔ Tasks  
+1. Retrieve SSO client details:
+   - clientId  
+   - secret  
+   - issuer URL  
+2. Create OpenShift secret:  
+   ```
+   oc create secret generic rhsso-oidc-client-secret      --from-literal clientSecret=<SECRET> -n openshift-config
+   ```
+3. Modify OAuth CR to include the new IdP while preserving existing LDAP IdP.  
+4. Verify OAuth rollout (pods in `openshift-authentication`).  
+5. Log in using the following test users:  
+   - **contractors** group → `edit` role  
+   - **partners** group → `view` role  
+6. Validate:  
+   - Contractors can create/edit objects  
+   - Partners can view but cannot edit  
+7. Remove users and group memberships in SSO and observe propagation delay.  
+8. Force logout in OpenShift by deleting tokens:  
+   ```
+   oc delete oauthaccesstoken $(oc get oauthaccesstoken -o jsonpath='{...}')
+   ```
 ---
 
 # 1. Project Creation
