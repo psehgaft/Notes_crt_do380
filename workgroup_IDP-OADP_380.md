@@ -3,7 +3,7 @@
 
 # Notes_crt_do380
 
-## Agenda (1.5 hours)
+## Agenda 
 1. **Intro & Environment Check **  
 2. **Exercise 1 — OADP Backup & Restore **  
 3. **Exercise 2 — OIDC Setup & Group Sync **  
