@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: testing-logs
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: view-application-logs
+  namespace: testing-logs
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-logging-application-view
+subjects:
+  - kind: Group
+    name: ocpdevs
+    apiGroup: rbac.authorization.k8s.io
+

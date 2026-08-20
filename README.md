@@ -22,7 +22,7 @@ Hands-on exercises for practicing OpenShift administration, automation, authenti
 | 03 | [Automate an application deployment](exercises/03-ansible-application-deployment.md) | Ansible, idempotency, OpenShift objects | [`templates/automation/`](templates/automation/) |
 | 04 | [Back up and restore an application with OADP](exercises/04-oadp-backup-and-restore.md) | OADP, Velero, hooks, namespace mapping | [`templates/oadp/`](templates/oadp/) |
 | 05 | [Configure OIDC and group-based RBAC](exercises/05-oidc-and-group-rbac.md) | OAuth, OIDC claims, groups, authorization | [`templates/identity/`](templates/identity/) |
-| 06 | [Centralize logs with Loki](exercises/06-centralized-logging.md) | LokiStack, Vector, console plug-in | [`templates/logging/centralized-logging.yaml`](templates/logging/centralized-logging.yaml) |
+| 06 | [Centralize logs with Loki](exercises/06-centralized-logging.md) | ODF/NooBaa, LokiStack, Vector, console plug-in, RBAC | [`templates/logging/`](templates/logging/) |
 | 07 | [Forward logs to external syslog](exercises/07-log-forwarding.md) | ClusterLogForwarder, pipelines, selectors | [`templates/logging/syslog-forwarding.yaml`](templates/logging/syslog-forwarding.yaml) |
 | 08 | [Troubleshoot cluster monitoring](exercises/08-cluster-monitoring.md) | Dashboards, PromQL, resources, node health | [`templates/monitoring/`](templates/monitoring/) |
 | 09 | [Review active alerts from the CLI](exercises/09-review-alerts.md) | Prometheus API, Alertmanager API, JSON filtering | No manifest required |
