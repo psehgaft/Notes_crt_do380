@@ -1,0 +1,11 @@
+spec:
+  repo:
+    volumeMounts:
+      - mountPath: /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
+        name: cluster-root-ca-bundle
+        subPath: ca-bundle.crt
+    volumes:
+      - configMap:
+          name: cluster-root-ca-bundle
+        name: cluster-root-ca-bundle
+

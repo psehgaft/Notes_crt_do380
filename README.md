@@ -1,348 +1,92 @@
-# Notes_crt_do380
+# OpenShift Automation and Integration Practice Labs
 
+Hands-on exercises for practicing OpenShift administration, automation, authentication, backup, logging, and monitoring workflows relevant to DO380-style objectives.
 
-```yml
-apiVersion: v1
-kind: Namespace
-metadata:
-  labels:
-    openshift.io/cluster-monitoring: "true"
-  name: openshift-metering
-```
+> [!IMPORTANT]
+> This is an independent study repository. It is not an official Red Hat course, exam guide, or exam dump. Run privileged exercises only in a disposable lab cluster that you are authorized to administer.
 
+## Lab conventions
 
-```yml
-apiVersion: config.openshift.io/v1
-kind: OAuth
-metadata:
-  name: cluster
-spec:
-  identityProviders:
-  - name: ldapidp
-    mappingMethod: claim
-    type: LDAP
-    ldap:
-      attributes:
-        id:
-        - dn
-        email:
-        - mail
-        name:
-        - cn
-        preferredUsername:
-        - uid
-      bindDN: "uid=admin,cn=users,cn=accounts,dc=ocp4,dc=example,dc=com"
-      bindPassword:
-        name: ldap-secret
-      ca:
-        name: ca-config-map
-      insecure: false
-      url: "ldaps://idm.ocp4.example.com/cn=users,cn=accounts,dc=ocp4,dc=example,dc=com?uid"
-```
+- Commands use Bash and the `oc` CLI.
+- The example cluster API is `https://api.ocp4.psehgaft.org:6443`.
+- Replace values written as `<VALUE>` before applying a template.
+- Every exercise follows the same structure: objectives, prerequisites, challenge, implementation, validation, troubleshooting, and cleanup.
+- Generated tokens, private keys, kubeconfigs, and object-storage credentials must never be committed.
 
-```sh
+## Exercise catalog
 
-ssh core@wnode "sudo systemctl is-active kubelet"
-ssh core@wnode "sudo systemctl start kubelet"
-ssh core@wnode "sudo systemctl is-active kubelet"
-```
-## Ansible
+| # | Exercise | Primary skills | Supporting files |
+|---:|---|---|---|
+| 01 | [Service account token authentication](exercises/01-service-account-token-authentication.md) | ServiceAccounts, RBAC, bounded tokens, kubeconfig | [`templates/authentication/health-robot-rbac.yaml`](templates/authentication/health-robot-rbac.yaml) |
+| 02 | [Client certificate authentication](exercises/02-client-certificate-authentication.md) | CSR API, groups, RBAC, kubeconfig | [`templates/authentication/client-csr.yaml.tpl`](templates/authentication/client-csr.yaml.tpl) |
+| 03 | [Automate an application deployment](exercises/03-ansible-application-deployment.md) | Ansible, idempotency, OpenShift objects | [`templates/automation/`](templates/automation/) |
+| 04 | [Back up and restore an application with OADP](exercises/04-oadp-backup-and-restore.md) | OADP, Velero, hooks, namespace mapping | [`templates/oadp/`](templates/oadp/) |
+| 05 | [Configure OIDC and group-based RBAC](exercises/05-oidc-and-group-rbac.md) | OAuth, OIDC claims, groups, authorization | [`templates/identity/`](templates/identity/) |
+| 06 | [Centralize logs with Loki](exercises/06-centralized-logging.md) | LokiStack, Vector, console plug-in | [`templates/logging/centralized-logging.yaml`](templates/logging/centralized-logging.yaml) |
+| 07 | [Forward logs to external syslog](exercises/07-log-forwarding.md) | ClusterLogForwarder, pipelines, selectors | [`templates/logging/syslog-forwarding.yaml`](templates/logging/syslog-forwarding.yaml) |
+| 08 | [Troubleshoot cluster monitoring](exercises/08-cluster-monitoring.md) | Dashboards, PromQL, resources, node health | [`templates/monitoring/`](templates/monitoring/) |
+| 09 | [Review active alerts from the CLI](exercises/09-review-alerts.md) | Prometheus API, Alertmanager API, JSON filtering | No manifest required |
+| 10 | [Administer cluster resources with OpenShift GitOps](exercises/10-openshift-gitops-cluster-administration.md) | Argo CD RBAC, trusted CA, Applications, synchronization | [`templates/gitops/`](templates/gitops/) |
 
-```yml
-- name: Deploying the 370 application
-  hosts: localhost
-  become: false
-  gather_facts: false
-  vars:
-    project: automation-ansible
-    app-name: 380
+## Prerequisites
 
-  tasks:
-    - name: Create a project
-      redhat.openshift.k8s:
-        state: present
-        resource_definition:
-          apiVersion: project.openshift.io/v1
-          kind: Project
-          metadata:
-            name: "{{ project }}"
+- An OpenShift cluster and an account with the permissions required by each exercise.
+- `oc`, `openssl`, `base64`, `curl`, `jq`, `git`, and `ansible-core` where applicable.
+- The `kubernetes.core` Ansible collection for Exercise 03.
+- Installed operators and storage integrations where explicitly listed.
 
-    - name: Deploy app 
-      redhat.openshift.k8s:
-        state: present
-        src: "{{  app-name }}.yml"
-
-    - name: Scaled up app
-      kubernetes.core.k8s_scale:
-        kind: Deployment
-        name: "{{  app-name }}"
-        replicas: 3
-
-   -  name: Create a route
-      redhat.openshift.openshift_route:
-        service: "{{  app-name }}-svc"
-      register: route
-  ```
-
-# EX380 - Red Hat Certified Specialist in OpenShift Automation and Integration exam 
-
-## `oc`
-
-### Extract File from a Secret or ConfigMap
+Check the local tools:
 
 ```bash
-oc extract secret/secret-name                # All files
-oc extract secret/secret-name --keys=my-file # Specific files
+for command in oc openssl base64 curl jq git; do
+  command -v "${command}" >/dev/null || echo "Missing: ${command}"
+done
+
+oc whoami
+oc cluster-info
 ```
 
-### Update Secret or ConfigMap file
+## Recommended workflow
 
 ```bash
-oc set data secret/secret-name --from-file my-file=my-local-file
+git clone https://github.com/psehgaft/Notes_crt_do380.git
+cd Notes_crt_do380
+
+# Read an exercise before applying its resources.
+less exercises/01-service-account-token-authentication.md
 ```
 
-### Get objects matching a label
+Use a dedicated lab namespace and complete the cleanup section after every exercise.
 
-```bash
-oc get deployment -n some-namespace -l app=some-app
+## Repository layout
+
+```text
+.
+├── exercises/                 # Numbered hands-on exercise guides
+├── templates/                 # Reusable manifests and automation examples
+│   ├── authentication/
+│   ├── automation/
+│   ├── gitops/
+│   ├── identity/
+│   ├── logging/
+│   ├── monitoring/
+│   └── oadp/
+├── .gitignore
+├── .markdownlint.yaml
+├── CONTRIBUTING.md
+└── README.md
 ```
 
-### JSONPath Output
-
-```bash
-# Basic
-oc get deployment some-app -o jsonpath='{.metadata.name}'
-
-# Get specific item from list/array
-oc get deployment some-app -o jsonpath='{.status.conditions[0].type'
-
-# Loop through list/array
-oc get deployment some-app -o jsonpath='{.status.conditions[*].type'
-
-# Filter items in list
-oc get deployment some-app -o jsonpath='{.status.conditions[?(@.type=="Available")].status}'
-```
-
-**NOTE:** Personally I think it's easier to filter outside of oc in a script but 🤷‍♂️
-
-## Service Accounts, [Cluster]Roles, and [Cluster]RoleBindings
-
-* It's easiest to copy an existing Role/ClusterRole, modify it, and save it as your own
-* Use the web console to make RoleBindings/ClusterRoleBindings
-* Alternatively use `oc policy add-role-to-user` with the `-z` flag for service accounts
-* **Don't write YAML for RoleBindings (unless you hate yourself)**
-
-## CronJobs
-
-* Examples in the OpenShift docs are in the **Nodes** section under **Running tasks in pods using jobs**
-
-### Create CronJob with CLI
-
-```bash
-oc create cronjob pi --image=perl --schedule='*/1 * * * *' -- perl -Mbignum=bpi -wle 'print bpi(2000)'
-```
-
-### Script in Job
-
-You can put a script in a job like this:
-
-```bash
-spec:
-  template:
-    spec:
-      containers:
-        - name: whatever
-          command: ["/bin/sh", "-c"]
-          args:
-            - "oc get pods --all-namespaces
-                | sort
-                | uniq"
-```
-
-## OpenShift/Kuberentes API
-
-### Authenticate to Kubernetes API
-
-```bash
-# Get the route for the oauth server
-oc get route -n openshift-authentication
-
-# This command will prompt for password
-curl -k -u admin "https://<host-from-route-above>/oauth/authorize?client_id=openshift-challenging-client&response_type=token"
-```
-
-This is the method the DO380 course recommends, **but more than likely this method won't work in a real environment** because your cluster **should** be set up with external authentication (SSO, OIDC, etc.), not htpasswd.
-
-What you should do instead is:
-
-* Go to OpenShift console
-* Select "Generate Login Command" (or whatever it's called)
-* Log in if needed
-* Grab the token shown
-
-**If it's an automated task, it should use a service account and the token assigned to a service account.**
-
-### Query for available endpoints
-
-```
-curl -k \
-  -H "Authorization: Bearer sha256~TOKEN" \
-  https://api.cluster.domain:6443/openapi/v2 | jq
-```
-
-### Figure out an endpoint being called by an `oc` command
-
-```
-oc get whatever -v 6 # Verbosity level 6 will print the API endpoint being called
-```
-
-## Ansible
-
-* **When in doubt, `ansible-doc <whatever-module>`** (This is good advice for all things Ansible)
-
-### Authenticate with Ansible to OpenShift
-
-```bash
-- name: Log in to OpenShift
-  hosts: localhost
-
-  tasks:
-    - name: Get access token for admin user
-      redhat.openshift.openshift_auth:
-        host: https://api.cluster.domain:6443
-        username: admin
-        password: admin
-      register: auth_results
-
-- name: Do something
-  hosts: localhost
-
-  module_defaults:
-    group/redhat.openshift.openshift:
-      namespace: some-namespace
-      api_key: "{{ auth_results['openshift_auth']['api_key'] }}"
-      host: https://api.cluster.domain.com:6443
-    group/kubernetes.core.k8s:
-      namespace: some-namespace
-      api_key: "{{ auth_results['openshift_auth']['api_key'] }}"
-      host: https://api.cluster.domain.com:6443
-```
-
-## Operators
-
-If you need to install an operator from YAML, the easiest way is to install through OperatorHub, grab the YAML it creates, and add that to your automation.
-
-If the operator is installed to "All Namespaces", it will create a Subscription in the "openshift-operators" namespace.
-
-If the operator is installed to a specific namespace, it will create an OperatorGroup and a Subscription in the targeted namespace.
-
-**NOTE:** Some operators (like OpenShift GitOps) manage a specific namespace but are installed to "All Namespaces".
-
-## Jenkins
-
-**Jenkins is deployed from an OpenShift template in the `openshift` namespace!**
-
-### List Jenkins Templates
-
-```bash
-oc get tempalte -n openshift | grep jenkins
-```
-
-### List Jenkins Template Parameters
-
-```bash
-oc process jeknins-peristent --paramters -n openshift
-```
-
-### Install Jenkins from Template
-
-```bash
-oc new-app --template jenkins-persistent
-```
-
-### Allow Jenkins to Create Projects
-
-*self-provisioner* is the role that allows users to create projects.
-
-```bash
-oc adm policy add-cluster-role-to-user self-provisioner -z jenkins
-```
-
-### Set Git CA for Jenkins Agents
-
-* Open Jenkins UI
-* Select *Manage Jenkins* on left sidebar
-* Scroll down to *Manage Nodes and Clouds*
-* Select *Configure Clouds* on the left sidebar
-* Under the Kubernetes cloud named *openshift*, select *Pod Templates...*
-* Find the Pod Template your build will use (nodejs, java, maven, etc.)
-* Add an environment variable
-    * Key: `GIT_SSL_CAINFO`
-    * Value: `/var/run/secrets/kubernetes.io/serviceaccount/ca.crt`
-* Select *Save* at the bottom
-
-### Use Jenkins API token
-
-* Open Jenkins UI
-* Select your user in the top left
-* Select *Configuration* on the left sidebar
-* Under *API token*, select *Add new token*
-* Give the token an name and select *Generate*
-
-### Using Jenkins API
-
-```bash
-# Get the route for the Jenkins server
-oc get route -n <jenkins-namespace>
-
-# Replace jenkins-route, project-name, username, and token
-curl "https://<jenkins-route>/job/<project-name>/job/main/lastBuild/api/json" \
-    --user "<username>:<token>"
-```
-
-### Jenkinsfile
-
-* Examples in the OpenShift docs are in the **Builds** section under **Using Build Strategies**.
-
-## Declarative State
-
-### YAML References
-
-* `oc api-resources` - Return resources available to OpenShift (Including CRDs)
-* `oc api-versions <resource>` - Return versions of resources
-* `oc explain <resource>` - Return details on a resource's expected fields
-
-## Kustomize
-
-**Kustomize is barely mentioned in the OCP docs. I have no idea if they give the Kustomize open-source docs in the exam environment.**
-
-### Test Kustomize Output
-
-```bash
-oc kustomize        # Current directory
-oc kustomize my-dir # Another directory
-```
-
-### Apply Kustomize to Cluster
-
-```bash
-oc apply -k .      # Current directory
-oc apply -k my-dir # Another directory
-```
-
-### secretGenerator
-
-Create secrets from files:
-
-```yaml
-# kustomize.yaml
-resources:
-- whatever.yaml
-secretGenerator:
-- name: htpasswd
-  namespace: openshift-config
-  files:
-  - htpasswd=my-file.htpasswd
-generatorOptions:
-  disableNameSuffixHash: true
-```
+## Security notes
+
+- Exercise 01 grants only `cluster-reader` and uses a seven-day token.
+- Exercise 02 intentionally demonstrates a seven-day administrative client certificate. Treat it as a break-glass lab credential, not as a normal user-authentication pattern.
+- Keep private keys and kubeconfigs at mode `0600`.
+- Do not use `--insecure-skip-tls-verify` unless a troubleshooting step explicitly explains the risk.
+- Prefer identity-provider authentication and short-lived credentials in production.
+
+## References
+
+- [OpenShift product documentation](https://docs.redhat.com/en/documentation/openshift_container_platform/)
+- [Kubernetes certificate signing requests](https://kubernetes.io/docs/reference/access-authn-authz/certificate-signing-requests/)
+- [Ansible Kubernetes collection](https://docs.ansible.com/ansible/latest/collections/kubernetes/core/)

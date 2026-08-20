@@ -1,0 +1,37 @@
+apiVersion: observability.openshift.io/v1
+kind: ClusterLogForwarder
+metadata:
+  name: syslog-forwarder
+  namespace: openshift-logging
+spec:
+  serviceAccount:
+    name: collector
+  inputs:
+    - name: critical-applications
+      type: application
+      application:
+        selector:
+          matchLabels:
+            logging: critical
+  outputs:
+    - name: external-syslog
+      type: syslog
+      syslog:
+        appName: openshift
+        facility: user
+        rfc: RFC5424
+        severity: informational
+        url: tcp://syslog.psehgaft.org:514
+  pipelines:
+    - name: critical-applications-to-syslog
+      inputRefs:
+        - critical-applications
+      outputRefs:
+        - external-syslog
+    - name: audit-and-infrastructure-to-syslog
+      inputRefs:
+        - audit
+        - infrastructure
+      outputRefs:
+        - external-syslog
+
