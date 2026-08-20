@@ -1,0 +1,22 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: workload-resource-alerts
+  namespace: dev-monitor
+spec:
+  groups:
+    - name: workload-resource.rules
+      rules:
+        - alert: NamespaceCPURequestsNearQuota
+          expr: |
+            sum(kube_pod_container_resource_requests{namespace="dev-monitor", resource="cpu"})
+            /
+            max(kube_resourcequota{namespace="dev-monitor", resource="requests.cpu", type="hard"})
+            > 0.8
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: CPU requests in dev-monitor are near quota
+            description: CPU requests have exceeded 80 percent of the namespace quota for 10 minutes.
+

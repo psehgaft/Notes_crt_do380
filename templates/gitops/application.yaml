@@ -1,0 +1,14 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gitops-admin
+  namespace: openshift-gitops
+spec:
+  project: default
+  source:
+    repoURL: https://git.ocp4.psehgaft.org/developer/gitops-admin.git
+    targetRevision: HEAD
+    path: .
+  destination:
+    server: https://kubernetes.default.svc
+

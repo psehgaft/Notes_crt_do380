@@ -1,0 +1,20 @@
+# Generated credentials and local configuration
+robot-cert/
+admin-cert/
+*.key
+*.csr
+*.crt
+*.kubeconfig
+*.config
+
+# Local secrets and environment files
+.env
+credentials-velero
+*-credentials
+
+# Editor and Python artifacts
+.idea/
+.vscode/
+__pycache__/
+*.pyc
+

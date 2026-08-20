@@ -1,0 +1,12 @@
+apiVersion: user.openshift.io/v1
+kind: Group
+metadata:
+  name: developers1
+users: []
+---
+apiVersion: user.openshift.io/v1
+kind: Group
+metadata:
+  name: operators1
+users: []
+

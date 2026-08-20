@@ -1,0 +1,39 @@
+---
+- name: Deploy the app-380 sample application
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    project_name: app-380
+    manifest_path: "{{ playbook_dir }}/app-380.yaml"
+
+  tasks:
+    - name: Ensure the project exists
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: project.openshift.io/v1
+          kind: Project
+          metadata:
+            name: "{{ project_name }}"
+
+    - name: Apply the application resources
+      kubernetes.core.k8s:
+        state: present
+        src: "{{ manifest_path }}"
+        namespace: "{{ project_name }}"
+        wait: true
+        wait_timeout: 180
+
+    - name: Read the application route
+      kubernetes.core.k8s_info:
+        api_version: route.openshift.io/v1
+        kind: Route
+        name: app-380
+        namespace: "{{ project_name }}"
+      register: app_route
+
+    - name: Display the application URL
+      ansible.builtin.debug:
+        msg: "https://{{ app_route.resources[0].spec.host }}"
+

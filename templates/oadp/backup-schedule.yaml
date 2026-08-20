@@ -1,0 +1,52 @@
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: mediawiki-daily
+  namespace: openshift-adp
+spec:
+  schedule: "0 23 * * *"
+  paused: true
+  template:
+    includedNamespaces:
+      - mediawiki
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/part-of: mediawiki
+    snapshotVolumes: true
+    ttl: 168h0m0s
+    hooks:
+      resources:
+        - name: mediawiki-lock
+          includedNamespaces:
+            - mediawiki
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: mediawiki
+          pre:
+            - exec:
+                container: mediawiki
+                command:
+                  - /bin/sh
+                  - -c
+                  - touch /data/images/backup.lock
+          post:
+            - exec:
+                container: mediawiki
+                command:
+                  - /bin/sh
+                  - -c
+                  - rm -f /data/images/backup.lock
+        - name: postgresql-checkpoint
+          includedNamespaces:
+            - mediawiki
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: postgresql
+          pre:
+            - exec:
+                container: postgresql
+                command:
+                  - /bin/sh
+                  - -c
+                  - psql -U "${POSTGRESQL_USER}" -d "${POSTGRESQL_DATABASE}" -c 'CHECKPOINT;'
+
